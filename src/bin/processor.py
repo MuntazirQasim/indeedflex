@@ -86,10 +86,10 @@ def write_csv(final_df):
     print(final_df)
 
     # write final dataframe as a csv called results.csv
-    #final_df.to_csv('results.csv', index=False)
+    final_df.to_csv('../processed_data/result.csv', index=False)
 
 def main():
-    df = read_csv('worker_activity.csv')
+    df = read_csv('../source_data/worker_activity.csv')
     final_df = process_data(df)
     write_csv(final_df)
 
