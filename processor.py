@@ -84,6 +84,9 @@ def read_csv():
             #print(days_worked)
             
         final_df = final_df.append({'Worker': worker,'Continuity': days_worked}, ignore_index=True)
-        print(final_df)
+
+    final_df = final_df.sort_values(by=['Continuity'], ascending=False)
+
+    final_df.to_csv('results.csv', index=False)
 
 read_csv()
