@@ -1,3 +1,5 @@
+#!/bin/env python
+
 import pandas as pd
 import numpy as np
 from datetime import timedelta
@@ -5,7 +7,7 @@ from datetime import timedelta
 # reads CSV file worker_activity.csv in the same directory as the script and puts it in a DataFrame
 # parse_dates=False as dates are managed as numpy datetime during processing
 def read_csv(csv_file):
-    df = pd.read_csv(csv_file, parse_dates=True)#, index_col=0)
+    df = pd.read_csv(csv_file, parse_dates=True)
     # sort df to order by Worker
     df = df.sort_values('Worker')
 
@@ -36,6 +38,9 @@ def process_data(df):
         prev_date = np.datetime64('2021-12-01T00:00')
         days_worked = 0
 
+        prev_employer = 0
+        prev_role = 0
+
         for date in worker_dates:
         # compare each date with the next one to see if diff > 6
 
@@ -48,9 +53,6 @@ def process_data(df):
             six_days = np.datetime64(6, 'D') - np.datetime64(0,'Y')
             six_days = six_days.astype('timedelta64[D]')
 
-            prev_employer = 0
-            prev_role = 0
-
             employer_and_role_df = df.loc[(df['Date'] == date) & (df['Worker'] == worker)]
             current_role = employer_and_role_df['Role'].values
             current_employer = employer_and_role_df['Employer'].values
@@ -58,13 +60,15 @@ def process_data(df):
             # if the two dates being compared are within a six day time period, the number of days worked is incremented
             # if the role or employer of the previous working day and current day aren't equal, activity length is set to
             # greater than six days so that the days_worked isn't incremented in the next step 
-            if int(prev_role) == 0 and int(prev_employer) == 0:
+            if int(current_role[0]) == int(prev_role) and int(current_employer[0]) == int(prev_employer):
                 if activity_length <= six_days:
                     days_worked += 1
 
-            elif int(current_role[0]) == int(prev_role) and int(current_employer[0]) == int(prev_employer):
+            elif int(prev_role) == 0 and int(prev_employer) == 0:
                 if activity_length <= six_days:
                     days_worked += 1
+                else:
+                    break
             # if role or employer for current date of employment isn't the same as it was for previous date of employment
             # the loop breaks and the continuity stops being incremented for this worker
             else:
@@ -72,8 +76,8 @@ def process_data(df):
 
             # setting prev variables in preparation for the next loop
             prev_date = date
-            prev_employer = current_employer
-            prev_role = current_role
+            prev_employer = current_employer[0]
+            prev_role = current_role[0]
 
         # appending the worker and continuity row to the final dataframe for this worker    
         final_df = final_df.append({'Worker': worker,'Continuity': days_worked}, ignore_index=True)
@@ -86,7 +90,7 @@ def write_csv(final_df):
     print(final_df)
 
     # write final dataframe as a csv called results.csv
-    final_df.to_csv('../processed_data/result.csv', index=False)
+    final_df.to_csv('../processed_data/results.csv', index=False)
 
 def main():
     df = read_csv('../source_data/worker_activity.csv')
