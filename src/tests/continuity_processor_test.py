@@ -25,7 +25,6 @@ class TestStringMethods(unittest.TestCase):
         self.df = pd.DataFrame({'Worker': [1435, 1435, 1435, 135, 135, 135, 456, 456], 'Employer': [234, 234, 234, 45, 45, 45, 78, 78],
                                 'Role': [86, 86, 86, 696, 95, 95, 576, 576], 'Date': ['2021-01-01 17:00:00', '2021-01-04 12:30:00', '2021-01-08 07:00:00', '2021-01-25 18:00:00', '021-01-27 18:00:00', '2021-01-29 22:15:00', '2021-02-02 05:00:00', '2021-11-29 14:30:00']})
         self.processed_df = processor.process_data(self.df)
-
         self.comparison_df = pd.DataFrame({'Worker': [456, 1435, 135], 'Continuity': [1, 3, 2]})
 
         pd.testing.assert_frame_equal(self.processed_df, self.comparison_df, check_dtype=False)        

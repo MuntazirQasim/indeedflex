@@ -1,3 +1,3 @@
 #!/bin/env sh
 
-python ../tests/test_continuity_processor.py
+python ../tests/continuity_processor_test.py
