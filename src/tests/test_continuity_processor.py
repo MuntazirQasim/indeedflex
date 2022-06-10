@@ -1,3 +1,5 @@
+#!/bin/env python
+
 import unittest
 import pandas as pd
 
@@ -18,21 +20,23 @@ class TestStringMethods(unittest.TestCase):
         self.data = processor.read_csv('../source_data/worker_activity.csv')
         self.assertIsInstance(self.data, pd.DataFrame)
 
+    # passes in test data in README.md and verifies if output from process_data is the same as the results in README.md
     def test_process_data(self):
-        self.test_data = [[1435, 234, 86, '2021-01-01 17:00:00'], [1435, 234, 86, '2021-01-04 12:30:00'], [1435, 234, 86, '2021-01-08 07:00:00'], [135, 45, 696, '2021-01-25 18:00:00'], [135, 45, 95, '2021-01-27 18:00:00'], [135, 45, 95, '2021-01-29 22:15:00'], [456, 78, 576, '2021-02-02 05:00:00'], [456, 78, 576, '2021-11-29 14:30:00']]
-        self.df = pd.DataFrame(self.test_data, columns=['Worker', 'Employer', 'Role', 'Date'])
+        self.df = pd.DataFrame({'Worker': [1435, 1435, 1435, 135, 135, 135, 456, 456], 'Employer': [234, 234, 234, 45, 45, 45, 78, 78],
+                                'Role': [86, 86, 86, 696, 95, 95, 576, 576], 'Date': ['2021-01-01 17:00:00', '2021-01-04 12:30:00', '2021-01-08 07:00:00', '2021-01-25 18:00:00', '021-01-27 18:00:00', '2021-01-29 22:15:00', '2021-02-02 05:00:00', '2021-11-29 14:30:00']})
         self.processed_df = processor.process_data(self.df)
 
-        self.comparison_data = [[1435, 3], [135, 2], [456, 1]]
-        self.comparison_df = pd.DataFrame(self.comparison_data, columns=['Worker', 'Continuity'])
+        self.comparison_df = pd.DataFrame({'Worker': [456, 1435, 135], 'Continuity': [1, 3, 2]})
 
-        print(self.processed_df)
-        print(self.comparison_df)
+        pd.testing.assert_frame_equal(self.processed_df, self.comparison_df, check_dtype=False)        
 
-        pd.testing.assert_frame_equal(self.processed_df, self.comparison_df)
+    # checks if final dataframe is being sorted in descending order
+    def test_write_csv(self):
+        self.df = pd.DataFrame({'Worker': [135, 456, 1435], 'Continuity': [2, 1, 3]})
+        self.processed_df = processor.write_csv(self.df)
+        self.comparison_df = pd.DataFrame({'Worker': [1435, 135, 456], 'Continuity': [3, 2, 1]})
 
-    def write_csv(self):
-        pass
+        pd.testing.assert_frame_equal(self.processed_df.reset_index(drop=True), self.comparison_df.reset_index(drop=True), check_dtype=False)
 
 if __name__ == '__main__':
     unittest.main()

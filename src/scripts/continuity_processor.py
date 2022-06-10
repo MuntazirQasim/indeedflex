@@ -26,7 +26,6 @@ def process_data(df):
         # creating a dataframe for each individual worker in the for loop
         worker_df = df[df.Worker == worker]
 
-        print(worker)
 
         # define list of all the dates
         worker_dates = worker_df['Date'].values
@@ -43,7 +42,7 @@ def process_data(df):
         prev_employer = 0
         prev_role = 0
 
-        counter = 0
+        check_first_iter = True
 
         for date in worker_dates:
         # compare each date with the next one to see if diff > 6
@@ -58,20 +57,22 @@ def process_data(df):
             six_days = six_days.astype('timedelta64[D]')
 
             # if activity_length is more than six days from 1st December then the last day worked should still be processed
-            # and continuity should be calculated from that day
-            # counter allows us to determine if the most recent day is more than six days from 1st December then continuity
+            # and continuity should be calculated from that day (i.e. each worker should have Continuity >= 1)
+            # check_first_iter allows us to determine if the most recent day is more than six days from 1st December then continuity
             # should still be incremented
-            if activity_length > six_days and counter == 0:
+            if activity_length > six_days and check_first_iter == True:
                 days_worked += 1
                 prev_date = date
-                counter = 1
+                check_first_iter = False
                 continue
 
-            # counter is now incremented as the first date is now processed so if any subsequent activity lengths are greater
+            # check_first_iter is now set to False as the first date is now processed so if any subsequent activity lengths are greater
             # than six days, continuity should stop being processed
-            if counter == 0:
-                counter = 1
-
+            if check_first_iter == True:
+                check_first_iter = False
+            
+            # define dataframes where the date = date in this iteration and worker = worker in this iteration  
+            # these are then compared against employer and role
             employer_and_role_df = df.loc[(df['Date'] == date) & (df['Worker'] == worker)]
             current_role = employer_and_role_df['Role'].values
             current_employer = employer_and_role_df['Employer'].values
@@ -100,24 +101,23 @@ def process_data(df):
 
         # appending the worker and continuity row to the final dataframe for this worker    
         final_df = final_df.append({'Worker': worker,'Continuity': days_worked}, ignore_index=True)
-        print(final_df)
 
     return final_df
 
 def write_csv(final_df):
     # sort dataframe by descending continuity
     final_df = final_df.sort_values(by=['Continuity'], ascending=False)
-    print(final_df)
 
     # write final dataframe as a csv called results.csv
-    #final_df.to_csv('../processed_data/results.csv', index=False)
-    final_df.to_csv('../processed_data/test_results.csv', index=False)
+    final_df.to_csv('../processed_data/results.csv', index=False)
+
+    return final_df
+    
 
 def main():
-    #df = read_csv('../source_data/worker_activity.csv')
-    df = read_csv('../source_data/test.csv')    
+    df = read_csv('../source_data/worker_activity.csv')
     final_df = process_data(df)
-    #write_csv(final_df)
+    write_csv(final_df)
 
 if __name__ == "__main__":
     main()
